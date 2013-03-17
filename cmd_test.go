@@ -3,7 +3,7 @@ package cmd_test
 import (
 	"bytes"
 	"fmt"
-	"github.com/kisielk/cmd.go"
+	"github.com/kisielk/cmd"
 	"testing"
 )
 
@@ -11,7 +11,7 @@ func TestOne(t *testing.T) {
 	out := &bytes.Buffer{}
 	commands := map[string]cmd.CmdFn{
 		"good": func(args []string) (string, error) {
-			return "good\n", nil
+			return fmt.Sprintf("good %v\n", args), nil
 		},
 		"bad": func(args []string) (string, error) {
 			return "bad\n", fmt.Errorf("oops")
@@ -26,7 +26,8 @@ func TestOne(t *testing.T) {
 	}{
 		{"hello ", "unrecognized input: hello \n", false},
 		{"  ", "unrecognized input: hello \n", false},
-		{"good", "good\n", false},
+		{"good", "good []\n", false},
+		{"good arg1 arg2", "good [arg1 arg2]\n", false},
 		{"bad", "bad\n", true},
 	}
 
