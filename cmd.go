@@ -12,6 +12,7 @@ import (
 // DefaultPrompt is the default value of Cmd.Prompt
 const DefaultPrompt = "> "
 
+// CmdFn is the function type that can be used to define commands for a Cmd.
 // The value of out is printed to the console.
 // If err is not nil then execution of the command loop is terminated.
 type CmdFn func(args []string) (out string, err error)
@@ -65,7 +66,7 @@ func New(c map[string]CmdFn, in io.Reader, out io.Writer) *Cmd {
 		return "", nil
 	}
 	cmd.Default = func(line []byte) (string, error) {
-		return fmt.Sprintf("unrecognized input: %s", line), nil
+		return fmt.Sprintf("unrecognized input: %s\n", line), nil
 	}
 	return &cmd
 }
@@ -98,7 +99,7 @@ func (c *Cmd) One(line []byte) error {
 	if cmd == "" {
 		msg, cmderr = c.EmptyLine()
 	} else {
-		c.LastLine = line
+		c.LastLine = line[:]
 		if fn := c.Commands[cmd]; fn == nil {
 			msg, cmderr = c.Default(line)
 		} else {
