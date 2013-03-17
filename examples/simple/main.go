@@ -1,9 +1,9 @@
-// This is a simple example of using cmd.go on command-line console.
+// This is a simple example of using cmd for a command-line console.
 package main
 
 import (
 	"fmt"
-	"github.com/kisielk/cmd.go"
+	"github.com/kisielk/cmd"
 	"os"
 	"strings"
 )

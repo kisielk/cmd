@@ -1,10 +1,10 @@
-// This is a simple example of using cmd.go over a tcp socket.
+// This is a simple example of using cmd over a tcp socket.
 // Start the example and then telnet to the host on port 6000 to see it in action.
 package main
 
 import (
 	"fmt"
-	"github.com/kisielk/cmd.go"
+	"github.com/kisielk/cmd"
 	"log"
 	"net"
 	"strings"

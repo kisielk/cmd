@@ -66,7 +66,7 @@ func New(c map[string]CmdFn, in io.Reader, out io.Writer) *Cmd {
 		return "", nil
 	}
 	cmd.Default = func(line []byte) (string, error) {
-		return fmt.Sprintf("unrecognized input: %s\n", line), nil
+		return fmt.Sprintf("unrecognized command: %s\n", bytes.Fields(line)[0]), nil
 	}
 	return &cmd
 }
