@@ -1,15 +1,14 @@
-package cmd_test
+package cmd
 
 import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"github.com/kisielk/cmd"
 	"io"
 	"testing"
 )
 
-var commands = map[string]cmd.CmdFn{
+var commands = map[string]CmdFn{
 	"good": func(args []string) (string, error) {
 		return fmt.Sprintf("good %v\n", args), nil
 	},
@@ -32,10 +31,10 @@ var tests = []struct {
 
 func TestOne(t *testing.T) {
 	out := &bytes.Buffer{}
-	c := cmd.New(commands, nil, out)
+	c := New(commands, nil, out)
 
 	for i, test := range tests {
-		if err := c.One(test.In); !test.ShouldError && err != nil {
+		if err := c.one(test.In); !test.ShouldError && err != nil {
 			t.Fatalf("%d: unexpected error: %s", i, err)
 		} else if test.ShouldError && err == nil {
 			t.Fatalf("%d: expected error but got nil")
@@ -52,7 +51,7 @@ func TestLoop(t *testing.T) {
 	in, inw := io.Pipe()
 	outr, out := io.Pipe()
 	outbuf := bufio.NewReader(outr)
-	c := cmd.New(commands, in, out)
+	c := New(commands, in, out)
 
 	go func() {
 		err := c.Loop()

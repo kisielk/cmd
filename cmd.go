@@ -18,6 +18,7 @@ const DefaultPrompt = "> "
 type CmdFn func(args []string) (out string, err error)
 
 // Cmd is an interactive command interpreter. It's started by calling the Loop method.
+// Instances of Cmd should be constructed with the New function.
 type Cmd struct {
 	// In receives input
 	In io.Reader
@@ -52,6 +53,14 @@ type Cmd struct {
 	// If EmptyLine is not set then the last command is repeated.
 	EmptyLine func() (out string, err error)
 
+	// Tokens is called for each line of input to generate the tokens.
+	//
+	// The first token is the name of the command that will be called,
+	// while the rest of the tokens are passed as arguments to the command.
+	//
+	// If Tokens is not set then strings.Fields is used.
+	Tokens func(line string) (tokens []string)
+
 	// LastLine contains the last non-empty line received
 	LastLine string
 }
@@ -61,13 +70,14 @@ func New(c map[string]CmdFn, in io.Reader, out io.Writer) *Cmd {
 	cmd := Cmd{In: in, Out: out, Prompt: DefaultPrompt, LastLine: "", Commands: c}
 	cmd.EmptyLine = func() (string, error) {
 		if len(cmd.LastLine) > 0 {
-			return "", cmd.One(cmd.LastLine)
+			return "", cmd.one(cmd.LastLine)
 		}
 		return "", nil
 	}
 	cmd.Default = func(line string) (string, error) {
 		return fmt.Sprintf("unrecognized command: %s\n", strings.Fields(line)[0]), nil
 	}
+	cmd.Tokens = strings.Fields
 	return &cmd
 }
 
@@ -77,20 +87,20 @@ func (c *Cmd) parseLine(line string) (cmd string, args []string) {
 		return
 	}
 
-	fields := strings.Fields(line)
-	if len(fields) == 0 {
+	tokens := c.Tokens(line)
+	if len(tokens) == 0 {
 		return
 	}
-	cmd = string(fields[0])
-	for _, f := range fields[1:] {
-		args = append(args, string(f))
+	cmd = tokens[0]
+	if len(tokens) > 1 {
+		args = tokens[1:]
 	}
 	return
 }
 
-// One parses one line of input and executes a command.
+// one parses one line of input and executes a command.
 // The output of the command is sent to c.Out.
-func (c *Cmd) One(line string) error {
+func (c *Cmd) one(line string) error {
 	cmd, args := c.parseLine(line)
 
 	var msg string
@@ -130,7 +140,7 @@ func (c *Cmd) Loop() error {
 		if err != nil {
 			return err
 		}
-		if err := c.One(string(line)); err != nil {
+		if err := c.one(string(line)); err != nil {
 			return err
 		}
 	}
