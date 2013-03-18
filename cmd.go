@@ -4,9 +4,9 @@ package cmd
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
 	"io"
+	"strings"
 )
 
 // DefaultPrompt is the default value of Cmd.Prompt
@@ -41,7 +41,7 @@ type Cmd struct {
 	//
 	// If Default is not set the behaviour is to print a message to the
 	// console.
-	Default func(line []byte) (out string, err error)
+	Default func(line string) (out string, err error)
 
 	// EmptyLine is called whenever a line containing no characters
 	// other than whitespace or newline is received.
@@ -53,31 +53,31 @@ type Cmd struct {
 	EmptyLine func() (out string, err error)
 
 	// LastLine contains the last non-empty line received
-	LastLine []byte
+	LastLine string
 }
 
 // New creates a new Cmd with the commands from c that communicates via in and out.
 func New(c map[string]CmdFn, in io.Reader, out io.Writer) *Cmd {
-	cmd := Cmd{In: in, Out: out, Prompt: DefaultPrompt, LastLine: make([]byte, 0), Commands: c}
+	cmd := Cmd{In: in, Out: out, Prompt: DefaultPrompt, LastLine: "", Commands: c}
 	cmd.EmptyLine = func() (string, error) {
 		if len(cmd.LastLine) > 0 {
 			return "", cmd.One(cmd.LastLine)
 		}
 		return "", nil
 	}
-	cmd.Default = func(line []byte) (string, error) {
-		return fmt.Sprintf("unrecognized command: %s\n", bytes.Fields(line)[0]), nil
+	cmd.Default = func(line string) (string, error) {
+		return fmt.Sprintf("unrecognized command: %s\n", strings.Fields(line)[0]), nil
 	}
 	return &cmd
 }
 
-func (c *Cmd) parseLine(line []byte) (cmd string, args []string) {
-	line = bytes.TrimSpace(line)
+func (c *Cmd) parseLine(line string) (cmd string, args []string) {
+	line = strings.TrimSpace(line)
 	if len(line) == 0 {
 		return
 	}
 
-	fields := bytes.Fields(line)
+	fields := strings.Fields(line)
 	if len(fields) == 0 {
 		return
 	}
@@ -90,7 +90,7 @@ func (c *Cmd) parseLine(line []byte) (cmd string, args []string) {
 
 // One parses one line of input and executes a command.
 // The output of the command is sent to c.Out.
-func (c *Cmd) One(line []byte) error {
+func (c *Cmd) One(line string) error {
 	cmd, args := c.parseLine(line)
 
 	var msg string
@@ -130,7 +130,7 @@ func (c *Cmd) Loop() error {
 		if err != nil {
 			return err
 		}
-		if err := c.One(line); err != nil {
+		if err := c.One(string(line)); err != nil {
 			return err
 		}
 	}

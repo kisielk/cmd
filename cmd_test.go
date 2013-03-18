@@ -35,7 +35,7 @@ func TestOne(t *testing.T) {
 	c := cmd.New(commands, nil, out)
 
 	for i, test := range tests {
-		if err := c.One([]byte(test.In)); !test.ShouldError && err != nil {
+		if err := c.One(test.In); !test.ShouldError && err != nil {
 			t.Fatalf("%d: unexpected error: %s", i, err)
 		} else if test.ShouldError && err == nil {
 			t.Fatalf("%d: expected error but got nil")
