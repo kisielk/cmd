@@ -126,9 +126,15 @@ func (c *Cmd) one(line string) error {
 }
 
 // Loop starts the interpreter loop.
+//
 // For each iteration it prints c.Prompt to c.Out and then waits for a line of input.
-// The line is used to call c.One. The loop terminates and returns an error if
-// any call to c.One fails.
+// The line is tokenized using c.Tokens and the first token is interpreted as the name
+// of a command. The command is looked up in c.Commands and is called with the remaining
+// tokens.
+// 
+// If the command is not found then c.Default is called with the entire line.
+//
+// If the input line consists only of whitespace then c.EmptyLine is called.
 func (c *Cmd) Loop() error {
 	rd := bufio.NewReader(c.In)
 	for {
